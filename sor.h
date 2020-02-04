@@ -81,7 +81,7 @@ public:
         }
 
         // the linecount <= 500 check is said in the assignment "scan the whole file or first 500 lines"
-        while (fin >> noskipws >> ch && lineCount <= 500 && bytesRead < length) {
+        while (fin >> noskipws >> ch && bytesRead < length) {
             bytesRead++;
             ascii = (int)ch;
             switch (ascii) {
