@@ -39,6 +39,6 @@ clean:
 
 time:
 	### TIMING TESTS ###
-	time ./sorer -f assignment1ex1.txt
-	time ./sorer -f assignment1ex2.txt
+	time ./sorer -f assignment1lines500.txt -print_col_idx 3 499
+	time ./sorer -f assignment1lines10000.txt -print_col_idx 5 9999
 	### END TIMING TESTS ###
