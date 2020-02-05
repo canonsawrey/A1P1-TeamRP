@@ -6,6 +6,7 @@
 #include <regex>
 #include "type.h"
 #include "column.h"
+#include "parse_state.h"
 #include "type_column.h"
 
 using namespace std;
@@ -61,16 +62,7 @@ public:
      * @param length Number of bytes to be read
      */
     void interpretSchema(string filename, unsigned int from, unsigned int length) {
-        //Various fields to help parsing the file
-        char ch;
-        bool inField = false;
-        bool inQuotes = false;
-        unsigned int bytesRead = 0;
-        int lineCount = 1;
-        int ascii;
-        int currentWidth = 0;
-        int maxWidth = 0;
-        string currentField = "";
+        ParseState parseState = ParseState();
         //Used to collect all the strings in a row. Once a newline is hit, the staging vector will be pushed to all of the columns
         vector<string> stagingVector;
 
@@ -81,81 +73,81 @@ public:
         }
 
         // the linecount <= 500 check is said in the assignment "scan the whole file or first 500 lines"
-        while (fin >> noskipws >> ch && bytesRead < length) {
-            bytesRead++;
-            ascii = (int)ch;
+        while (fin >> noskipws >> parseState.ch && parseState.bytesRead < length) {
+            parseState.bytesRead++;
+            int ascii = (int)parseState.ch;
             switch (ascii) {
                 //New line
                 case 10:
-                    if (!inQuotes) {
-                        addRow(stagingVector, lineCount);
+                    if (!parseState.inQuotes) {
+                        addRow(stagingVector, parseState.lineCount);
                         stagingVector.clear();
-                        lineCount++;
-                        inField = false;
-                        if (currentWidth > maxWidth) {
-                            maxWidth = currentWidth;
+                        parseState.lineCount++;
+                        parseState.inField = false;
+                        if (parseState.currentWidth > parseState.maxWidth) {
+                            parseState.maxWidth = parseState.currentWidth;
                         }
-                        currentWidth = 0;
+                        parseState.currentWidth = 0;
                     } else {
-                        currentField = currentField + ch;
+                        parseState.currentField = parseState.currentField + parseState.ch;
                     }
                     break;
 
                 // < Character
                 case 60:
-                    if (!inQuotes) {
-                        if (!inField) {
-                            inField = true;
+                    if (!parseState.inQuotes) {
+                        if (!parseState.inField) {
+                            parseState.inField = true;
                             break;
                         }
                     } else {
-                        currentField = currentField + ch;
+                        parseState.currentField = parseState.currentField + parseState.ch;
                     }
                     break;
 
                 // > Character
                 case 62:
-                    if (!inQuotes) {
-                        if (inField) {
-                            currentWidth++;
-                            inField = false;
-                            stagingVector.push_back(currentField);
-                            currentField = "";
+                    if (!parseState.inQuotes) {
+                        if (parseState.inField) {
+                            parseState.currentWidth++;
+                            parseState.inField = false;
+                            stagingVector.push_back(parseState.currentField);
+                            parseState.currentField = "";
                         }
                     } else {
-                        currentField = currentField + ch;
+                        parseState.currentField = parseState.currentField + parseState.ch;
                     }
                     break;
                 // " character
                 case 34:
-                    if (inField) {
-                        if (!inQuotes) {
-                            inQuotes = true;
+                    if (parseState.inField) {
+                        if (!parseState.inQuotes) {
+                            parseState.inQuotes = true;
                         } else {
-                            inQuotes = false;
+                            parseState.inQuotes = false;
                         }
-                        currentField = currentField + ch;
+                        parseState.currentField = parseState.currentField + parseState.ch;
                     }
                     break;
 
                 // Space character
                 case 32:
-                    if (inQuotes) {
-                        currentField = currentField + ch;
+                    if (parseState.inQuotes) {
+                        parseState.currentField = parseState.currentField + parseState.ch;
                     }
                     break;
 
                 default:
-                    if (inField) {
-                        currentField = currentField + ch;
+                    if (parseState.inField) {
+                        parseState.currentField = parseState.currentField + parseState.ch;
                     }
                     break;
             }
         }
-        totalColumns = maxWidth;
+        totalColumns = parseState.maxWidth;
         //If end of file was reached with no newline, add the staging vector
-        if (bytesRead < length) {
-            addRow(stagingVector, lineCount);
+        if (parseState.bytesRead < length) {
+            addRow(stagingVector, parseState.lineCount);
         }
     }
 
@@ -167,11 +159,12 @@ public:
     void addRow(vector<string> stagingVector, int row) {
         for (int i = 1; i <= stagingVector.size(); i++) {
             string currentField = stagingVector[i - 1];
-            Type fieldType = getFieldType(currentField);
-            //update column type if needed
-            updateColumnType(fieldType, i);
-            //add data to a temporary 2d vector so that we dont have to read the file again
-            addToBaseData(currentField, fieldType, i, row);
+            if (row <= 500) {
+                Type fieldType = getFieldType(currentField);
+                //update column type if needed
+                updateColumnType(fieldType, i);
+            } 
+            addToBaseData(currentField, i, row);
         }
     }
 
@@ -217,7 +210,7 @@ public:
      * @param currentWidth The column the data resides in (first column having value of 1, not 0)
      * @param lineCount The row the data resides in
      */
-    void addToBaseData(string data, Type type, int currentWidth, int lineCount) {
+    void addToBaseData(string data, int currentWidth, int lineCount) {
         if (currentWidth > baseData.size()) {
             baseData.resize(currentWidth);
         }

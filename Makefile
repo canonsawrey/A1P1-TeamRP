@@ -36,3 +36,11 @@ test:
 clean:
 	rm ./sorer
 	rm ./tests
+
+time:
+	### TIMING TESTS ###
+	time ./sorer -f assignment1lines500.txt -print_col_idx 3 499
+	time ./sorer -f assignment1lines10000.txt -print_col_idx 5 9999
+	time ./sorer -f assignment1lines100000.txt -print_col_idx 5 99999
+	time ./sorer -f assignment1lines1000000.txt -print_col_idx 5 999999
+	### END TIMING TESTS ###
