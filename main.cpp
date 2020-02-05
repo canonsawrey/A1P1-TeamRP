@@ -1,5 +1,6 @@
 #include "sor.h"
 #include "flag_config.h"
+#include <limits.h>
 
 using namespace std;
 

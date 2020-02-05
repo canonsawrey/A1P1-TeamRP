@@ -16,11 +16,6 @@ using namespace std;
  * Parsing of .sor is done in the constructor of the class
  */
 class Sor {
-    
-    /**
-     * TODO_CANON TODO_TREVOR
-     * We can probably eliminate all of these fields except columns
-     */
     int totalColumns;
     vector<Type> columnTypes;
     vector<vector<string>> baseData;
