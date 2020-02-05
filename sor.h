@@ -159,11 +159,12 @@ public:
     void addRow(vector<string> stagingVector, int row) {
         for (int i = 1; i <= stagingVector.size(); i++) {
             string currentField = stagingVector[i - 1];
-            Type fieldType = getFieldType(currentField);
-            //update column type if needed
-            updateColumnType(fieldType, i);
-            //add data to a temporary 2d vector so that we dont have to read the file again
-            addToBaseData(currentField, fieldType, i, row);
+            if (row <= 500) {
+                Type fieldType = getFieldType(currentField);
+                //update column type if needed
+                updateColumnType(fieldType, i);
+            } 
+            addToBaseData(currentField, i, row);
         }
     }
 
@@ -209,7 +210,7 @@ public:
      * @param currentWidth The column the data resides in (first column having value of 1, not 0)
      * @param lineCount The row the data resides in
      */
-    void addToBaseData(string data, Type type, int currentWidth, int lineCount) {
+    void addToBaseData(string data, int currentWidth, int lineCount) {
         if (currentWidth > baseData.size()) {
             baseData.resize(currentWidth);
         }
