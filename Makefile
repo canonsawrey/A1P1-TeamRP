@@ -36,3 +36,9 @@ test:
 clean:
 	rm ./sorer
 	rm ./tests
+
+time:
+	### TIMING TESTS ###
+	time ./sorer -f assignment1ex1.txt
+	time ./sorer -f assignment1ex2.txt
+	### END TIMING TESTS ###
