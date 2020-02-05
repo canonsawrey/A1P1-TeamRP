@@ -1,5 +1,6 @@
 #include "helper.h"
 #include "getopt.h"
+#include <limits.h>
 
 //declaring the command-line flags
 struct option long_options[] = {
