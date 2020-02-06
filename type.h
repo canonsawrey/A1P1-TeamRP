@@ -9,4 +9,3 @@ enum Type {
     FLOAT,
     STRING
 };
-

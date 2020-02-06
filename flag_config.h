@@ -37,9 +37,11 @@ struct FlagConfig {
             while ((opt = getopt_long_only(argc, argv,"", 
                         long_options, &long_index)) != -1) {
                 switch (opt) {
+                    // filename
                     case 'f':
                         filename = optarg;
                         break;
+                    // bytes to read from
                     case 'r':
                         if (has_only_digits(optarg)) {
                             from = stoul(optarg);
@@ -47,6 +49,7 @@ struct FlagConfig {
                             throw "Invalid argument for -from. Program terminated.";
                         }
                         break;
+                    // length
                     case 'l':
                         if (has_only_digits(optarg)) {
                             len = stoul(optarg);
@@ -54,11 +57,13 @@ struct FlagConfig {
                             throw "Invalid argument for -len. Program terminated.";
                         }
                         break;
+                    // print_col_type
                     case 't':
                         if (has_only_digits(optarg)) {
                             printColType = stoul(optarg);
                         }
                         break;
+                    // print_col_idx
                     case 'i':
                         if (has_only_digits(optarg)) {
                             printColIndexCol = stoul(optarg);
@@ -73,6 +78,7 @@ struct FlagConfig {
                             throw "Invalid arguments for print_col_idx. Two uints required. Exiting.";
                         }
                         break;
+                    // is_missing_idx
                     case 'm':
                         if (has_only_digits(optarg)) {
                             isMissingCol = stoul(optarg);
@@ -81,7 +87,7 @@ struct FlagConfig {
                             if (has_only_digits(argv[optind])) {
                                 isMissingOffset = stoul(argv[optind]);
                                 printIsMissing = true;
-                            }  
+                            }
                         }
                         if (!printIsMissing) {
                             throw "Invalid arguments for is_missing_idx. Two uints required. Exiting.";

@@ -16,9 +16,13 @@ using namespace std;
  * Parsing of .sor is done in the constructor of the class
  */
 class Sor {
+    // total number of columns
     int totalColumns;
+    // vector of columnTypes
     vector<Type> columnTypes;
+    // 2D string array that contains the fields
     vector<vector<string>> baseData;
+    // vector of our completed Columns
     vector<Column*> columns;
 
 public:
@@ -58,7 +62,8 @@ public:
      */
     void interpretSchema(string filename, unsigned int from, unsigned int length) {
         ParseState parseState = ParseState();
-        //Used to collect all the strings in a row. Once a newline is hit, the staging vector will be pushed to all of the columns
+        // Used to collect all the data within a row. Once a newline is hit, 
+        // the staging vector will be pushed to all of the columns
         vector<string> stagingVector;
 
         //create the filestream and skip to the proper location in the file
@@ -67,71 +72,33 @@ public:
             skipTo(fin, from);
         }
 
-        // the linecount <= 500 check is said in the assignment "scan the whole file or first 500 lines"
+        // go character by character until the given length is reached
         while (fin >> noskipws >> parseState.ch && parseState.bytesRead < length) {
             parseState.bytesRead++;
             int ascii = (int)parseState.ch;
             switch (ascii) {
-                //New line
+                // New line Character
                 case 10:
-                    if (!parseState.inQuotes) {
-                        addRow(stagingVector, parseState.lineCount);
-                        stagingVector.clear();
-                        parseState.lineCount++;
-                        parseState.inField = false;
-                        if (parseState.currentWidth > parseState.maxWidth) {
-                            parseState.maxWidth = parseState.currentWidth;
-                        }
-                        parseState.currentWidth = 0;
-                    } else {
-                        parseState.currentField = parseState.currentField + parseState.ch;
-                    }
+                    handleNewLine(&parseState, &stagingVector);
                     break;
-
                 // < Character
                 case 60:
-                    if (!parseState.inQuotes) {
-                        if (!parseState.inField) {
-                            parseState.inField = true;
-                            break;
-                        }
-                    } else {
-                        parseState.currentField = parseState.currentField + parseState.ch;
-                    }
+                    handleOpenTag(&parseState);
                     break;
-
                 // > Character
                 case 62:
-                    if (!parseState.inQuotes) {
-                        if (parseState.inField) {
-                            parseState.currentWidth++;
-                            parseState.inField = false;
-                            stagingVector.push_back(parseState.currentField);
-                            parseState.currentField = "";
-                        }
-                    } else {
-                        parseState.currentField = parseState.currentField + parseState.ch;
-                    }
+                    handleCloseTag(&parseState, &stagingVector);
                     break;
-                // " character
+                // " Character
                 case 34:
-                    if (parseState.inField) {
-                        if (!parseState.inQuotes) {
-                            parseState.inQuotes = true;
-                        } else {
-                            parseState.inQuotes = false;
-                        }
-                        parseState.currentField = parseState.currentField + parseState.ch;
-                    }
+                    handleQuote(&parseState);
                     break;
-
                 // Space character
                 case 32:
                     if (parseState.inQuotes) {
                         parseState.currentField = parseState.currentField + parseState.ch;
                     }
                     break;
-
                 default:
                     if (parseState.inField) {
                         parseState.currentField = parseState.currentField + parseState.ch;
@@ -147,6 +114,72 @@ public:
     }
 
     /**
+     * Updates the given ParseState and stagingVector when a new line is encountered
+     * @param parseState The given ParseState configuration
+     * @param stagingVector The current stagingVector
+     */
+    void handleNewLine(ParseState* parseState, vector<string>* stagingVector) {
+        if (!parseState->inQuotes) {
+            // add the staging vector to baseData
+            addRow(*stagingVector, parseState->lineCount);
+            stagingVector->clear();
+            parseState->lineCount++;
+            parseState->inField = false;
+            if (parseState->currentWidth > parseState->maxWidth) {
+                // update the max width of the parse state
+                parseState->maxWidth = parseState->currentWidth;
+            }
+            parseState->currentWidth = 0;
+        } else {
+            parseState->currentField = parseState->currentField + parseState->ch;
+        }
+    }
+
+    /**
+     * Updates the given ParseState when a `<` is encountered
+     * @param parseState The given ParseState configuration
+     */
+    void handleOpenTag(ParseState* parseState) {
+        if (!parseState->inQuotes) {
+            if (!parseState->inField) {
+                // set the inField flag to true to indicate we are at the beginning of a new field
+                parseState->inField = true;
+            }
+        } else {
+            parseState->currentField = parseState->currentField + parseState->ch;
+        }
+    }
+
+    /**
+     * Updates the given ParseState and stagingVector when a `>` is encountered
+     * @param parseState The given ParseState configuration
+     * @param stagingVector The current stagingVector
+     */
+    void handleCloseTag(ParseState* parseState, vector<string>* stagingVector) {
+        if (!parseState->inQuotes) {
+            if (parseState->inField) {
+                parseState->currentWidth++;
+                parseState->inField = false;
+                stagingVector->push_back(parseState->currentField);
+                parseState->currentField = "";
+            }
+        } else {
+            parseState->currentField = parseState->currentField + parseState->ch;
+        }
+    }
+
+    /**
+     * Updates the given ParseState when a quote is encountered
+     * @param parseState The given ParseState configuration
+     */
+    void handleQuote(ParseState* parseState) {
+        if (parseState->inField) {
+            parseState->inQuotes = !parseState->inQuotes;
+            parseState->currentField = parseState->currentField + parseState->ch;
+        }
+    }
+
+    /**
      * Adds the staging vector to the baseData
      * @param stagingVector vector of strings representing a row of data to be added
      * @param row Row number, starting at 1
@@ -154,11 +187,13 @@ public:
     void addRow(vector<string> stagingVector, int row) {
         for (int i = 1; i <= stagingVector.size(); i++) {
             string currentField = stagingVector[i - 1];
+            // only care about updating the schema when we are within the first 500 lines
             if (row <= 500) {
                 Type fieldType = getFieldType(currentField);
                 //update column type if needed
                 updateColumnType(fieldType, i);
-            } 
+            }
+            //add the data contained within the field to baseData
             addToBaseData(currentField, i, row);
         }
     }
@@ -216,7 +251,7 @@ public:
     }
 
     /**
-     * Updates the columnType vector is the incomingType is less restrictive than the currentType for the column at current width
+     * Updates the columnType vector if the incomingType is less restrictive than the currentType for the column at current width
      * I.e. STRING replaces FLOAT replaces INT replaces BOOL
      * @param incomingType The type that will be added to the column
      * @param currentWidth The index of the column (starting from 1, not0)
@@ -226,6 +261,7 @@ public:
             columnTypes.resize(currentWidth, incomingType);
         }
         Type oldType = columnTypes.at(currentWidth - 1);
+        // check if the old column Type should be updated
         if (shouldChangeType(oldType, incomingType)) {
             columnTypes.at(currentWidth - 1) = incomingType;
         }
@@ -248,11 +284,11 @@ public:
      */
     Type getFieldType(string fieldValue) {
         trim(fieldValue);
-        if (isBool(fieldValue)) return BOOL;
-        if (isInt(fieldValue)) return INT;
-        if (isFloat(fieldValue)) return FLOAT;
-        if (isString(fieldValue)) return STRING;
-        return BOOL;
+        if (isBool(fieldValue)) return Type::BOOL;
+        if (isInt(fieldValue)) return Type::INT;
+        if (isFloat(fieldValue)) return Type::FLOAT;
+        if (isString(fieldValue)) return Type::STRING;
+        return Type::BOOL;
     }
 
     /**

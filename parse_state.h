@@ -1,5 +1,9 @@
 #pragma once
 
+/**
+ * Keeps track of information regarding the current
+ * state of parsing within the .sor file
+ */
 struct ParseState {
     public:
         char ch;
