@@ -7,7 +7,6 @@
 #include "type.h"
 #include "column.h"
 #include "parse_state.h"
-#include "type_column.h"
 
 using namespace std;
 
@@ -16,12 +15,6 @@ using namespace std;
  * Parsing of .sor is done in the constructor of the class
  */
 class Sor {
-    // total number of columns
-    int totalColumns;
-    // vector of columnTypes
-    vector<Type> columnTypes;
-    // 2D string array that contains the fields
-    vector<vector<string>> baseData;
     // vector of our completed Columns
     vector<Column*> columns;
 
@@ -35,8 +28,9 @@ public:
         unsigned int length,
         string filename
     ) {
+        columns = vector<Column*>();
         interpretSchema(filename, from, length);
-        createColumns();
+        printTransposed();
     }
 
     /**
@@ -106,10 +100,9 @@ public:
                     break;
             }
         }
-        totalColumns = parseState.maxWidth;
         //If end of file was reached with no newline, add the staging vector
         if (parseState.bytesRead < length) {
-            addRow(stagingVector, parseState.lineCount);
+            writeData(stagingVector, parseState.lineCount);
         }
     }
 
@@ -121,7 +114,7 @@ public:
     void handleNewLine(ParseState* parseState, vector<string>* stagingVector) {
         if (!parseState->inQuotes) {
             // add the staging vector to baseData
-            addRow(*stagingVector, parseState->lineCount);
+            writeData(*stagingVector, parseState->lineCount);
             stagingVector->clear();
             parseState->lineCount++;
             parseState->inField = false;
@@ -184,86 +177,34 @@ public:
      * @param stagingVector vector of strings representing a row of data to be added
      * @param row Row number, starting at 1
      */  
-    void addRow(vector<string> stagingVector, int row) {
-        for (int i = 1; i <= stagingVector.size(); i++) {
-            string currentField = stagingVector[i - 1];
+    void writeData(vector<string> stagingVector, int row) {
+        for (int i = 0; i < stagingVector.size(); i++) {
+            string currentField = stagingVector[i];
+            if (i >= columns.size()) {
+                columns.push_back(new Column());
+            }
             // only care about updating the schema when we are within the first 500 lines
             if (row <= 500) {
                 Type fieldType = getFieldType(currentField);
                 //update column type if needed
-                updateColumnType(fieldType, i);
+                updateColumnType(fieldType, columns[i]);
             }
-            //add the data contained within the field to baseData
-            addToBaseData(currentField, i, row);
+            //add the data contained within the field to columns
+            columns[i]->addValue(new string(currentField), row);
         }
-    }
-
-    /**
-      * Builds Columns out of rawData and columnTypes vectors
-      */
-    void createColumns() {
-        for (int i = 0; i < columnTypes.size(); i++) {
-            vector<string> base = baseData[i];
-            switch (columnTypes[i]) {
-                case FLOAT: {
-                    vector<float> trans;
-                    trans.resize(base.size());
-                    transform(base.begin(), base.end(), trans.begin(), parseFloat);
-                    columns.push_back(new TypeColumn<float>(columnTypes[i], trans, base));
-                    break;
-                }
-                case INT: {
-                    vector<unsigned int> trans;
-                    trans.resize(base.size());
-                    transform(base.begin(), base.end(), trans.begin(), parseFloat);
-                    columns.push_back(new TypeColumn<unsigned int>(columnTypes[i], trans, base));
-                    break;
-                }
-                case STRING: {
-                    columns.push_back(new TypeColumn<string>(columnTypes[i], base, base));
-                    break;
-                }
-                case BOOL: {
-                    vector<bool> trans;
-                    trans.resize(base.size());
-                    transform(base.begin(), base.end(), trans.begin(), parseBool);
-                    columns.push_back(new TypeColumn<bool>(columnTypes[i], trans, base));
-                    break;
-                }
-            }
-        }
-    }
-
-    /**
-     * Adds a string to the 2D vector of strings, representing the raw strings from the .sor file
-     * @param data string to be added
-     * @param currentWidth The column the data resides in (first column having value of 1, not 0)
-     * @param lineCount The row the data resides in
-     */
-    void addToBaseData(string data, int currentWidth, int lineCount) {
-        if (currentWidth > baseData.size()) {
-            baseData.resize(currentWidth);
-        }
-        if (lineCount > baseData.at(currentWidth - 1).size()) {
-            baseData.at(currentWidth - 1).resize(lineCount, "");
-        }
-        baseData.at(currentWidth - 1).at(lineCount - 1) = data;
     }
 
     /**
      * Updates the columnType vector if the incomingType is less restrictive than the currentType for the column at current width
      * I.e. STRING replaces FLOAT replaces INT replaces BOOL
      * @param incomingType The type that will be added to the column
-     * @param currentWidth The index of the column (starting from 1, not0)
+     * @param column Pointer to the column in question
      */
-    void updateColumnType(Type incomingType, int currentWidth) {
-        if (currentWidth > columnTypes.size()) {
-            columnTypes.resize(currentWidth, incomingType);
-        }
-        Type oldType = columnTypes.at(currentWidth - 1);
+    void updateColumnType(Type incomingType, Column* column) {
+        Type oldType = column->getType();
         // check if the old column Type should be updated
         if (shouldChangeType(oldType, incomingType)) {
-            columnTypes.at(currentWidth - 1) = incomingType;
+            column->type = incomingType;
         }
     }
 
@@ -284,11 +225,11 @@ public:
      */
     Type getFieldType(string fieldValue) {
         trim(fieldValue);
-        if (isBool(fieldValue)) return Type::BOOL;
-        if (isInt(fieldValue)) return Type::INT;
-        if (isFloat(fieldValue)) return Type::FLOAT;
-        if (isString(fieldValue)) return Type::STRING;
-        return Type::BOOL;
+        if (isBool(fieldValue)) return BOOL;
+        if (isInt(fieldValue)) return INT;
+        if (isFloat(fieldValue)) return FLOAT;
+        if (isString(fieldValue)) return STRING;
+        return BOOL;
     }
 
     /**
@@ -298,7 +239,7 @@ public:
         cout << "\nTranspose:";
         for (Column* c: columns) {
             cout << "\n" << typeStr(c->getType()) << " ";
-            c->print(20);
+            c->print(10);
         }
         cout << "\n";
     }
@@ -309,12 +250,12 @@ public:
      * @param row Row index (starting at 0)
      * @return The value's string representation
      */
-    string getStringValueAt(unsigned int column, unsigned int row) {
+    string getValueAt(unsigned int column, unsigned int row) {
         if (column >= columns.size()) {
             throw "Column index out of bounds exception.";
         }
         Column* col = columns[column];
-        return col->getStringValue(row);
+        return *col->getValue(row);
     }
 
     /**
@@ -336,7 +277,7 @@ public:
      * @param row Row index (starting at 0)
      */
     void printValue(unsigned int col, unsigned int offset) {
-        string value = getStringValueAt(col, offset);
+        string value = getValueAt(col, offset);
         cout << value << endl;
     }
 
@@ -347,11 +288,11 @@ public:
      */
     void printIsMissing(unsigned int col, unsigned int row) {
         bool missing = 0;
-        if (col <= baseData.size() - 1) {
+        if (col <= columns.size() - 1) {
             if (row > getMaxColumnHeight() - 1) {
                 throw "Index out of bounds. Program terminated.";
-            } else if (row <= baseData[col].size() - 1) {
-                if (baseData[col][row] == "") {
+            } else if (row <= columns[col]->values.size() - 1) {
+                if (columns[col]->getValue(row) == nullptr) {
                     missing = 1;
                 }
             } else {

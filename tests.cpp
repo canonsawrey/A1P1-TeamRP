@@ -1,7 +1,6 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.h"
 #include "sor.h"
-#include "type_column.h"
 #include "helper.h"
 #include <unistd.h>
 #include <iostream>
@@ -88,8 +87,6 @@ TEST_CASE("Helpers", "[helper]") {
 TEST_CASE("Column", "[column]") {
     vector<int> data{1, 2, 3, 4, 5};
     vector<string> stringData{"1", "2", "3", "4", "5"};
-    TypeColumn<int>* testCol;
-    TypeColumn<string>* stringCol;
 
     SECTION("Constructor") {
         REQUIRE_NOTHROW(new TypeColumn<int>(INT, data, stringData));
@@ -115,8 +112,8 @@ TEST_CASE("Sor", "[sor]") {
     Sor * sor = new Sor(0, 1000000, "data.sor");
 
     SECTION("getStringValueAt") {
-        REQUIRE(sor->getStringValueAt(0, 0) == "\"hello\"");
-        REQUIRE(sor->getStringValueAt(1, 2) == "23");
+        REQUIRE(sor->getValueAt(0, 0) == "\"hello\"");
+        REQUIRE(sor->getValueAt(1, 2) == "23");
     }
 
     SECTION("getMaxColumnHeight") {
