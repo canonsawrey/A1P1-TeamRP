@@ -46,7 +46,6 @@ class Column {
             }
             trimQuotes(currentField);
             if (row == values.size()) {
-                trimQuotes(currentField);
                 values.push_back(currentField);
             } else if (row > values.size()) {
                 values.resize(row + 1);
@@ -69,7 +68,6 @@ class Column {
             if (row > values.size() - 1) {
                 fail("Index out of bound exception.");
             } else {
-                string* ptr = values[row];
                 return values[row];
             }
         }

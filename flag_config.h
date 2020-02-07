@@ -45,7 +45,7 @@ struct FlagConfig {
                     case 'f':
                         filename = optarg;
                         break;
-                    // bytes to read from
+                    // -from = bytes to read from
                     case 'r':
                         if (has_only_digits(optarg)) {
                             from = stoul(optarg);
@@ -53,7 +53,7 @@ struct FlagConfig {
                             fail("Invalid argument for -from. Program terminated.");
                         }
                         break;
-                    // length
+                    // -len = length
                     case 'l':
                         if (has_only_digits(optarg)) {
                             len = stoul(optarg);
@@ -61,13 +61,13 @@ struct FlagConfig {
                             fail("Invalid argument for -len. Program terminated.");
                         }
                         break;
-                    // print_col_type
+                    // -print_col_type
                     case 't':
                         if (has_only_digits(optarg)) {
                             printColType = stoul(optarg);
                         }
                         break;
-                    // print_col_idx
+                    // -print_col_idx
                     case 'i':
                         if (has_only_digits(optarg)) {
                             printColIndexCol = stoul(optarg);
@@ -86,7 +86,7 @@ struct FlagConfig {
                         }
                         argCount = 0;
                         break;
-                    // is_missing_idx
+                    // -is_missing_idx
                     case 'm':
                         if (has_only_digits(optarg)) {
                             isMissingCol = stoul(optarg);

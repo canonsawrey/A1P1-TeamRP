@@ -48,7 +48,7 @@ class SorAdapter {
         }
 
         /**
-         * Parses the .sor file at filename, loading data in to 2D string vector `baseData`
+         * Parses the .sor file at filename, loading data into columns vector
          * @param filename .sor filename to be processed
          * @param from the number of bytes to skip forward
          * @param length Number of bytes to be read
@@ -113,7 +113,7 @@ class SorAdapter {
          */
         void handleNewLine(ParseState* parseState, vector<string>* stagingVector) {
             if (!parseState->inQuotes) {
-                // add the staging vector to baseData
+                // add the staging vector to columns
                 writeData(*stagingVector, parseState->lineCount);
                 // clear the stagingVector for the next line
                 stagingVector->clear();
@@ -172,7 +172,7 @@ class SorAdapter {
         }
 
         /**
-         * Adds the staging vector to the baseData
+         * Adds the staging vector to the columns
          * @param stagingVector vector of strings representing a row of data to be added
          * @param row Row number, starting at 1
          */  
@@ -180,9 +180,10 @@ class SorAdapter {
             for (int i = 0; i < stagingVector.size(); i++) {
                 string currentField = stagingVector[i];
                 if (i >= columns.size()) {
+                    // add new columns if the row is longer than the current column count
                     columns.push_back(new Column());
                 }
-                //add the data contained within the field to columns
+                // add the data contained within the field to columns
                 columns[i]->addValue(new string(currentField), row);
             }
         }
