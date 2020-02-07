@@ -15,10 +15,10 @@ using namespace std;
  * Parsing of .sor is done in the constructor of the class
  */
 class SorAdapter {
-    // vector of our completed Columns
-    vector<Column*> columns;
-
     public:
+        // vector of our completed Columns
+        vector<Column*> columns;
+
         /**
          * Constructor for SorAdapter class
          */
@@ -183,8 +183,10 @@ class SorAdapter {
                     // add new columns if the row is longer than the current column count
                     columns.push_back(new Column());
                 }
-                // add the data contained within the field to columns
-                columns[i]->addValue(new string(currentField), row);
+                //add the data contained within the field to columns
+                if (currentField != "") {
+                    columns[i]->addValue(new string(currentField), row);
+                }
             }
         }
 

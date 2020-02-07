@@ -17,7 +17,7 @@ struct option long_options[] = {
 /**
  * Used to keep the main function clean. Takes in the command line arguments and turns them into an object
  */
-struct FlagConfig {
+struct Flags {
     public:
         string filename;
         unsigned int from = 0;
@@ -31,7 +31,7 @@ struct FlagConfig {
         unsigned int isMissingCol = 0;
         unsigned int isMissingOffset = 0;
         
-        FlagConfig(int argc, char** argv) {
+        Flags(int argc, char** argv) {
             //set opterr to zero so we can provide a custom error message for unrecognized flags
             extern int opterr;
             opterr = 0;
