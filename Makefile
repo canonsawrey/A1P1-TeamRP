@@ -5,7 +5,7 @@ build:
 
 test:
 	#building our unit tests executable
-	g++ -std=c++11 -w -O3 -o tests tests.cpp
+	g++ -std=c++11 -w -o tests tests.cpp
 
 	#command line input tests
 	# the '-' preceding tests is for ignoring errors/failed assert statements for testing.

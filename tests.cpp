@@ -1,7 +1,6 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.h"
 #include "sor.h"
-#include "type_column.h"
 #include "helper.h"
 #include <unistd.h>
 #include <iostream>
@@ -64,7 +63,6 @@ TEST_CASE("Helpers", "[helper]") {
         REQUIRE(parseBool("") == NULL);
         REQUIRE(parseBool("1") == true);
         REQUIRE(parseBool("0") == false);
-        REQUIRE_THROWS(parseBool("hello"));
     }
 
     SECTION("isString") {
@@ -83,43 +81,116 @@ TEST_CASE("Helpers", "[helper]") {
         REQUIRE(s1 == "hello");
         REQUIRE(s2 == "bye");
     }
+
+    SECTION("trimQuotes") {
+        string* s = new string("\"hello\"");
+        REQUIRE(*s == "\"hello\"");
+        trimQuotes(s);
+        REQUIRE(*s == "hello");
+    }
 }
 
 TEST_CASE("Column", "[column]") {
-    vector<int> data{1, 2, 3, 4, 5};
-    vector<string> stringData{"1", "2", "3", "4", "5"};
-    TypeColumn<int>* testCol;
-    TypeColumn<string>* stringCol;
+    Column col = Column();
+    Column col2 = Column();
 
-    SECTION("Constructor") {
-        REQUIRE_NOTHROW(new TypeColumn<int>(INT, data, stringData));
+    SECTION("getType, addValue, length, getValue 1") {
+        REQUIRE(typeStr(col.getType()) == "BOOL");
+        REQUIRE(typeStr(col2.getType()) == "BOOL");
+        REQUIRE(col.length() == 0);
     }
 
-    SECTION("getValue, getStringValue, getType, and getLength") {
-        testCol = new TypeColumn<int>(INT, data, stringData);
-        stringCol = new TypeColumn<string>(STRING, stringData, stringData);
-        REQUIRE(testCol->getValue(0) == 1);
-        REQUIRE(testCol->getValue(2) == 3);
+    col.addValue(new string("1"), 0);
+    col2.addValue(new string("123.1"), 0);
 
-        REQUIRE(testCol->getStringValue(0) == "1");
-        REQUIRE(testCol->getStringValue(2) == "3");
+    SECTION("getType, addValue, length, getValue 2") {
+        REQUIRE(typeStr(col.getType()) == "BOOL");
+        REQUIRE(typeStr(col2.getType()) == "FLOAT");
+        REQUIRE(col.length() == 1);
+        REQUIRE(*col.getValue(0) == "1");
+        REQUIRE(*col2.getValue(0) == "123.1");
+    }
+    
+    col.addValue(new string("0"), 1);
+    col2.addValue(new string("Hello"), 1);
 
-        REQUIRE(testCol->getType() == INT);
-        REQUIRE(stringCol->getType() == STRING);
+    SECTION("getType, addValue, length, getValue 3") {
+        REQUIRE(typeStr(col.getType()) == "BOOL");
+        REQUIRE(typeStr(col2.getType()) == "STRING");
+        REQUIRE(col.length() == 2);
+        REQUIRE(*col.getValue(1) == "0");
+        REQUIRE(*col2.getValue(1) == "Hello");
+    }
 
-        REQUIRE(testCol->length() == 5);
+    SECTION("updateColumnType") {
+        REQUIRE(typeStr(col.getType()) == "BOOL");
+        col.updateColumnType(INT);
+        REQUIRE(typeStr(col.getType()) == "INT");
+        col.updateColumnType(FLOAT);
+        REQUIRE(typeStr(col.getType()) == "FLOAT");
+        col.updateColumnType(INT);
+        REQUIRE(typeStr(col.getType()) == "FLOAT");
+
     }
 }
 
-TEST_CASE("Sor", "[sor]") {
-    Sor * sor = new Sor(0, 1000000, "data.sor");
+TEST_CASE("SorAdapter value retrieval", "[sor]") {
+    SorAdapter * adapter = new SorAdapter(0, 1000000, "test.sor");
+    SorAdapter * adapter2 = new SorAdapter(1, 1000000, "test.sor");
 
-    SECTION("getStringValueAt") {
-        REQUIRE(sor->getStringValueAt(0, 0) == "\"hello\"");
-        REQUIRE(sor->getStringValueAt(1, 2) == "23");
+    SECTION("getValueAt") {
+        REQUIRE(adapter->getValueAt(0, 0) == "1");
+        REQUIRE(adapter->getValueAt(2, 2) == "432.12");
+        REQUIRE(adapter->getValueAt(0, 6) == "");
+        REQUIRE(adapter->getValueAt(0, 13) == "<<<>");
+        REQUIRE(adapter->getValueAt(0, 5) == "1+1");
+        REQUIRE(adapter->getValueAt(2, 2) == "432.12");
+        REQUIRE(adapter->getValueAt(2, 4) == "0.65234");
+        REQUIRE(adapter->getValueAt(1, 13) == "");
+        REQUIRE(adapter->getValueAt(0, 10) == "-\"\"-");
     }
 
     SECTION("getMaxColumnHeight") {
-        REQUIRE(sor->getMaxColumnHeight() == 8);
+        REQUIRE(adapter->getMaxColumnHeight() == 14);
+    }
+
+    SECTION("getValueAt") {
+        REQUIRE(adapter2->getValueAt(0, 0) == "3");
+        REQUIRE(adapter2->getValueAt(2, 2) == "8.1");
+        REQUIRE(adapter2->getValueAt(0, 6) == "");
+        REQUIRE(adapter2->getValueAt(0, 12) == "<<<>");
+        REQUIRE(adapter2->getValueAt(0, 5) == "");
+    }
+
+    SECTION("getMaxColumnHeight") {
+        REQUIRE(adapter2->getMaxColumnHeight() == 13);
+    }
+}
+
+TEST_CASE("SorAdapter write data", "[sor]") {
+    SorAdapter * adapter = new SorAdapter(0, 1000000, "test.sor");
+
+    SECTION("getMaxColumnHeight") {
+        REQUIRE(adapter->getMaxColumnHeight() == 14);
+    }
+    SECTION("getColumnTypes") {
+        REQUIRE(typeStr(adapter->columns[2]->getType()) == "FLOAT");
+        REQUIRE(typeStr(adapter->columns[3]->getType()) == "BOOL");
+    }
+    
+    //Prepare and add new data to be added
+    vector<string>* stagingVector = new vector<string>();
+    stagingVector->push_back("");
+    stagingVector->push_back("");
+    stagingVector->push_back("421asd");
+    stagingVector->push_back("41");
+    adapter->writeData(*stagingVector, 14);
+
+    SECTION("getMaxColumnHeight") {
+        REQUIRE(adapter->getMaxColumnHeight() == 15);
+    }
+    SECTION("getColumnTypes") {
+        REQUIRE(typeStr(adapter->columns[2]->getType()) == "STRING");
+        REQUIRE(typeStr(adapter->columns[3]->getType()) == "INT");
     }
 }

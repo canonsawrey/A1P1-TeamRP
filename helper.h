@@ -6,6 +6,15 @@
 using namespace std;
 
 /**
+ * Exits the program with a message
+ * @param message The string that will be printed to the console
+ */
+void fail(string message = "") {
+    cout << message << endl;
+    exit(-1);
+}
+
+/**
  * Returns if the string only contains number characters
  * @param s The string to be evaluated
  * @return bool if s only contains digits
@@ -20,7 +29,6 @@ bool has_only_digits(const string s){
  * @return if s is an integer
  */
 bool isInt(string value) {
-    //cout << value << endl;
     if (value.find("\"")  != string::npos) {
         return false;
     } else {
@@ -34,7 +42,6 @@ bool isInt(string value) {
  * Convenience wrapper around stoi, returns an integer from a string
  * @param s The string to be parsed
  * @return the parsed integer
- * 
  */
 int parseInt(string value) {
     if (value == "") {
@@ -98,9 +105,7 @@ bool parseBool(string value) {
     } else if (value == "0") {
         return 0;
     } else {
-        string message = "Unable to parse boolean from string: ";
-        message.append(value);
-        throw message;
+        fail("Unable to parse boolean from string: " + value);
     }
 }
 
@@ -145,6 +150,31 @@ string typeStr(Type t) {
 }
 
 /**
+ * Relating to the previous function, updateColumnType. True if newType is less restrictive. False otherwise
+ * @param oldType The original type of a columnn
+ * @param newType The new type coming in
+ * @return True if the newType should override/replace the old type, false otherwise
+ */
+bool shouldChangeType(Type oldType, Type newType) {
+    return newType > oldType;
+}
+
+/**
+ * Trims quotes from a string
+ * @param s the string to be trimmed 
+ */
+void trimQuotes(string* s) {
+    if (s == nullptr || s->length() < 2) {
+        return;
+    }
+    string first = s->substr(0, 1);
+    string last = s->substr(s->length() - 1, s->length());
+    if (first == "\"" && last == "\"") {
+        *s = s->substr(1, s->length() - 2);
+    }
+}
+
+/**
  * Trims whitespace at the beginning of a string
  * @param s The string to be trimmed
  * @return string with whitespace trimmed on the left
@@ -170,7 +200,38 @@ static inline string &rtrim(string &s) {
  * Trims whitespace on both sides of a string
  * @param s The string to be trimmed
  * @return string with whitespace trimmed on both sides
+ * Credit: https://stackoverflow.com/questions/216823/whats-the-best-way-to-trim-stdstring
  */
 static inline string &trim(string &s) {
     return ltrim(rtrim(s));
+}
+
+/**
+ * Pads or slices the input string to the input size
+ * @param s The string to be padded of shortened
+ * @param l The desired size
+ */
+static string padString(string s, size_t l) {
+    if (s.length() > l) {
+        s = s.substr(0, l);
+    } else {
+        while (s.length() < l) {
+            s.append(" ");
+        }
+    }
+    return s;
+}
+
+/**
+ * Determines the most restrictive type that can be applied to a string
+ *  @param fieldValue The string to be evaluated
+ *  @return The most restrictive type fieldValue can represent
+ */
+Type getFieldType(string fieldValue) {
+    trim(fieldValue);
+    if (isBool(fieldValue)) return BOOL;
+    if (isInt(fieldValue)) return INT;
+    if (isFloat(fieldValue)) return FLOAT;
+    if (isString(fieldValue)) return STRING;
+    return BOOL;
 }
