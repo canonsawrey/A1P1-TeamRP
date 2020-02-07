@@ -5,7 +5,7 @@
  * state of parsing within the .sor file
  */
 struct ParseState {
-    public:
+    public: 
         char ch;
         bool inField = false;
         bool inQuotes = false;
