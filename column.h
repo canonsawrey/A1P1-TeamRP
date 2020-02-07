@@ -44,10 +44,12 @@ class Column {
                 //update column type if needed
                 updateColumnType(fieldType);
             }
+            // we trim quotes in order to maintain consistent string representations internally
             trimQuotes(currentField);
             if (row == values.size()) {
                 values.push_back(currentField);
             } else if (row > values.size()) {
+                // when there were no values in this column in previous lines of the file
                 values.resize(row + 1);
                 values.at(row) = currentField;
             }
