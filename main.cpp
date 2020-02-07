@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
     //if -print_col_idx input was valid
     if (flags.printCell) {
         sorAdapter->printValue(flags.printColIndexCol, flags.printColIndexOffset);
-    }
+    } 
 
     //if -is_missing_idx input was valid
     if (flags.printIsMissing) {

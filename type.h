@@ -8,4 +8,4 @@ enum Type {
     INT,
     FLOAT,
     STRING
-};
+}; 

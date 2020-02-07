@@ -32,22 +32,6 @@ class SorAdapter {
         }
 
         /**
-         * Skips the fstream ahead from the start to "from" bytes in,
-         * and then skips to the end of the line to eliminate partial start line.
-         * @param fin The file stream that will be read in
-         * @param from The number of bytes to skip forward
-         */
-        void skipTo(fstream &fin, unsigned int from) {
-            unsigned int bytesRead = 0;
-            char ch;
-            while (bytesRead < from && fin >> noskipws >> ch) {
-                bytesRead++;
-            }
-            // skips to the end of the line to eliminate partial start line.
-            while ((int)ch != 10 && fin >> noskipws >> ch) { }
-        }
-
-        /**
          * Parses the .sor file at filename, loading data into columns vector
          * @param filename .sor filename to be processed
          * @param from the number of bytes to skip forward
@@ -104,6 +88,22 @@ class SorAdapter {
             if (parseState.bytesRead < length) {
                 writeData(stagingVector, parseState.lineCount);
             }
+        }
+
+        /**
+         * Skips the fstream ahead from the start to "from" bytes in,
+         * and then skips to the end of the line to eliminate partial start line.
+         * @param fin The file stream that will be read in
+         * @param from The number of bytes to skip forward
+         */
+        void skipTo(fstream &fin, unsigned int from) {
+            unsigned int bytesRead = 0;
+            char ch;
+            while (bytesRead < from && fin >> noskipws >> ch) {
+                bytesRead++;
+            }
+            // skips to the end of the line to eliminate partial start line.
+            while ((int)ch != 10 && fin >> noskipws >> ch) { }
         }
 
         /**
@@ -202,24 +202,6 @@ class SorAdapter {
         }
 
         /**
-         * Gets the string for the value at the given column and row
-         * @param column Column index (starting at 0)
-         * @param row Row index (starting at 0)
-         * @return The value's string representation
-         */
-        string getValueAt(unsigned int column, unsigned int row) {
-            if (column >= columns.size()) {
-                fail("Column index out of bounds exception.");
-            }
-            string* str = columns[column]->getValue(row);
-            if (str == nullptr) {
-                return "";
-            } else {
-                return *str;
-            }
-        }
-
-        /**
          * Prints the column type of the column at the specified index
          * @param column the index of the column (starting at 0)
          */
@@ -244,6 +226,24 @@ class SorAdapter {
             }
             cout << value << endl;
         }
+        
+        /**
+         * Gets the string for the value at the given column and row
+         * @param column Column index (starting at 0)
+         * @param row Row index (starting at 0)
+         * @return The value's string representation
+         */
+        string getValueAt(unsigned int column, unsigned int row) {
+            if (column >= columns.size()) {
+                fail("Column index out of bounds exception.");
+            }
+            string* str = columns[column]->getValue(row);
+            if (str == nullptr) {
+                return "";
+            } else {
+                return *str;
+            }
+        }
 
         /**
          * Prints 1 if the value of the given column and row is missing
@@ -266,7 +266,7 @@ class SorAdapter {
                 fail("Index out of bounds. Program terminated.");
             }
             cout << missing << endl;
-        }
+        } 
 
         unsigned int getMaxColumnHeight() {
             unsigned int max = 0;

@@ -226,7 +226,7 @@ static string padString(string s, size_t l) {
  * Determines the most restrictive type that can be applied to a string
  *  @param fieldValue The string to be evaluated
  *  @return The most restrictive type fieldValue can represent
- */
+ */ 
 Type getFieldType(string fieldValue) {
     trim(fieldValue);
     if (isBool(fieldValue)) return BOOL;

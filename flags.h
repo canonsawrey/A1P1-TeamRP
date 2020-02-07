@@ -13,7 +13,7 @@ struct option long_options[] = {
     {"print_col_idx",   required_argument,       0,  'i' },
     {"is_missing_idx",  required_argument,       0,  'm' },
     {0,                 0,                       0,   0  }
-};
+}; 
 /**
  * Used to keep the main function clean. Takes in the command line arguments and turns them into an object
  */
@@ -93,7 +93,7 @@ struct Flags {
                             argCount++;
                         }
                         // ensure there are two uints given
-                        for( ;optind < argc && *argv[optind] != '-'; optind++){
+                        for( ;optind < argc && *argv[optind] != '-'; optind++) {
                             if (has_only_digits(argv[optind])) {
                                 isMissingOffset = stoul(argv[optind]);
                                 printIsMissing = true;

@@ -87,7 +87,7 @@ class Column {
         /**
          * Prints a string representation of the column. Useful for debugging
          * @param spacing The length of each value of the column. Ensures all rows line up when printing multiple rows
-         */
+         */  
         void print(int spacing) {
             cout << padString(typeStr(type), 10);
             for (string* str: values) {

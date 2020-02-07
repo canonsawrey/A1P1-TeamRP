@@ -9,7 +9,7 @@
 #include <string>
 
 TEST_CASE("Helpers", "[helper]") {
-
+ 
     SECTION("has_only_digits") {
         REQUIRE(has_only_digits("") == true);
         REQUIRE(has_only_digits("0") == true);
