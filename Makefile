@@ -33,6 +33,13 @@ test:
 	#unit tests
 	./tests
 
+memorytest:
+	docker build -t memtest:1.0 .
+	docker run -ti -v /`pwd`:/test memtest:1.0 bash -c \
+	"cd /test ; make build ; \
+	valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all ./sorer -f assignment1lines500.sor -print_col_idx 3 499 ; \
+	valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all ./sorer -f assignment1lines10000.sor -print_col_idx 5 9999"
+
 clean:
 	rm ./sorer
 	rm ./tests
