@@ -1,3 +1,5 @@
+#pragma once
+
 #include "helper.h"
 #include "getopt.h"
 #include <limits.h>
@@ -23,12 +25,14 @@ struct FlagConfig {
         unsigned int printColType = UINT_MAX;
         bool printCell = false;
         bool printIsMissing = false;
+        unsigned int argCount = 0;
         unsigned int printColIndexCol = 0;
         unsigned int printColIndexOffset = 0;
         unsigned int isMissingCol = 0;
         unsigned int isMissingOffset = 0;
         
         FlagConfig(int argc, char** argv) {
+            //set opterr to zero so we can provide a custom error message for unrecognized flags
             extern int opterr;
             opterr = 0;
             int opt;
@@ -46,7 +50,7 @@ struct FlagConfig {
                         if (has_only_digits(optarg)) {
                             from = stoul(optarg);
                         } else {
-                            throw "Invalid argument for -from. Program terminated.";
+                            fail("Invalid argument for -from. Program terminated.");
                         }
                         break;
                     // length
@@ -54,7 +58,7 @@ struct FlagConfig {
                         if (has_only_digits(optarg)) {
                             len = stoul(optarg);
                         } else {
-                            throw "Invalid argument for -len. Program terminated.";
+                            fail("Invalid argument for -len. Program terminated.");
                         }
                         break;
                     // print_col_type
@@ -67,34 +71,43 @@ struct FlagConfig {
                     case 'i':
                         if (has_only_digits(optarg)) {
                             printColIndexCol = stoul(optarg);
+                            argCount++;
                         }
+                        // ensure there are two uints given
                         for( ;optind < argc && *argv[optind] != '-'; optind++){
                             if (has_only_digits(argv[optind])) {
                                 printColIndexOffset = stoul(argv[optind]);
                                 printCell = true;
+                                argCount++;
                             }
                         }
-                        if (!printCell) {
-                            throw "Invalid arguments for print_col_idx. Two uints required. Exiting.";
+                        if (!printCell || argCount != 2) {
+                            fail("Invalid arguments for print_col_idx. Two uints required. Program terminated.");
                         }
+                        argCount = 0;
                         break;
                     // is_missing_idx
                     case 'm':
                         if (has_only_digits(optarg)) {
                             isMissingCol = stoul(optarg);
+                            argCount++;
                         }
+                        // ensure there are two uints given
                         for( ;optind < argc && *argv[optind] != '-'; optind++){
                             if (has_only_digits(argv[optind])) {
                                 isMissingOffset = stoul(argv[optind]);
                                 printIsMissing = true;
+                                argCount++;
                             }
                         }
-                        if (!printIsMissing) {
-                            throw "Invalid arguments for is_missing_idx. Two uints required. Exiting.";
+                        if (!printIsMissing || argCount != 2) {
+                            fail("Invalid arguments for is_missing_idx. Two uints required. Program terminated.");
                         }
+                        argCount = 0;
                         break;
+                    // unrecognized flag
                     default:
-                        exit(EXIT_FAILURE);
+                        fail("Unrecognized flag. Program terminated.");
                 }
             }
         }

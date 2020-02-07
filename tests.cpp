@@ -63,7 +63,6 @@ TEST_CASE("Helpers", "[helper]") {
         REQUIRE(parseBool("") == NULL);
         REQUIRE(parseBool("1") == true);
         REQUIRE(parseBool("0") == false);
-        REQUIRE_THROWS(parseBool("hello"));
     }
 
     SECTION("isString") {
@@ -84,39 +83,87 @@ TEST_CASE("Helpers", "[helper]") {
     }
 }
 
-TEST_CASE("Column", "[column]") {
-    vector<int> data{1, 2, 3, 4, 5};
-    vector<string> stringData{"1", "2", "3", "4", "5"};
+// TEST_CASE("Column", "[column]") {
+//     vector<int> data{1, 2, 3, 4, 5};
+//     vector<string> stringData{"1", "2", "3", "4", "5"};
 
-    SECTION("Constructor") {
-        REQUIRE_NOTHROW(new TypeColumn<int>(INT, data, stringData));
-    }
+//     SECTION("Constructor") {
+//         REQUIRE_NOTHROW(new TypeColumn<int>(INT, data, stringData));
+//     }
 
-    SECTION("getValue, getStringValue, getType, and getLength") {
-        testCol = new TypeColumn<int>(INT, data, stringData);
-        stringCol = new TypeColumn<string>(STRING, stringData, stringData);
-        REQUIRE(testCol->getValue(0) == 1);
-        REQUIRE(testCol->getValue(2) == 3);
+//     SECTION("getValue, getStringValue, getType, and getLength") {
+//         testCol = new TypeColumn<int>(INT, data, stringData);
+//         stringCol = new TypeColumn<string>(STRING, stringData, stringData);
+//         REQUIRE(testCol->getValue(0) == 1);
+//         REQUIRE(testCol->getValue(2) == 3);
 
-        REQUIRE(testCol->getStringValue(0) == "1");
-        REQUIRE(testCol->getStringValue(2) == "3");
+//         REQUIRE(testCol->getStringValue(0) == "1");
+//         REQUIRE(testCol->getStringValue(2) == "3");
 
-        REQUIRE(testCol->getType() == INT);
-        REQUIRE(stringCol->getType() == STRING);
+//         REQUIRE(testCol->getType() == INT);
+//         REQUIRE(stringCol->getType() == STRING);
 
-        REQUIRE(testCol->length() == 5);
-    }
-}
+//         REQUIRE(testCol->length() == 5);
+//     }
+// }
 
-TEST_CASE("Sor", "[sor]") {
-    Sor * sor = new Sor(0, 1000000, "data.sor");
+TEST_CASE("SorAdapter value retrieval", "[sor]") {
+    SorAdapter * adapter = new SorAdapter(0, 1000000, "test.sor");
 
-    SECTION("getStringValueAt") {
-        REQUIRE(sor->getValueAt(0, 0) == "\"hello\"");
-        REQUIRE(sor->getValueAt(1, 2) == "23");
+    SECTION("getValueAt") {
+        REQUIRE(adapter->getValueAt(0, 0) == "1");
+        REQUIRE(adapter->getValueAt(2, 2) == "432.12");
+        REQUIRE(adapter->getValueAt(0, 6) == "");
+        REQUIRE(adapter->getValueAt(0, 13) == "<<<>");
+        REQUIRE(adapter->getValueAt(0, 5) == "1+1");
+        REQUIRE(adapter->getValueAt(2, 2) == "432.12");
+        REQUIRE(adapter->getValueAt(2, 4) == "0.65234");
+        REQUIRE(adapter->getValueAt(1, 13) == "<<");
+        REQUIRE(adapter->getValueAt(0, 10) == "-\"\"-");
     }
 
     SECTION("getMaxColumnHeight") {
-        REQUIRE(sor->getMaxColumnHeight() == 8);
+        REQUIRE(adapter->getMaxColumnHeight() == 14);
+    }
+
+    SorAdapter * adapter2 = new SorAdapter(1, 1000000, "test.sor");
+
+        SECTION("getValueAt") {
+        REQUIRE(adapter2->getValueAt(0, 0) == "3");
+        REQUIRE(adapter2->getValueAt(2, 2) == "8.1");
+        REQUIRE(adapter2->getValueAt(0, 6) == "");
+        REQUIRE(adapter2->getValueAt(0, 12) == "321");
+        REQUIRE(adapter2->getValueAt(0, 5) == "");
+    }
+
+    SECTION("getMaxColumnHeight") {
+        REQUIRE(adapter->getMaxColumnHeight() == 13);
+    }
+}
+
+TEST_CASE("SorAdapter write data", "[sor]") {
+    SorAdapter * adapter = new SorAdapter(0, 1000000, "test.sor");
+
+    SECTION("getMaxColumnHeight") {
+        REQUIRE(adapter->getMaxColumnHeight() == 14);
+    }
+    SECTION("getColumnTypes") {
+        REQUIRE(adapter->getMaxColumnHeight() == 14);
+    }
+
+    vector<string>* stagingVector = new vector<string>();
+    stagingVector->pushBack("");
+
+
+    SECTION("getValueAt") {
+        REQUIRE(adapter2->getValueAt(0, 0) == "3");
+        REQUIRE(adapter2->getValueAt(2, 2) == "8.1");
+        REQUIRE(adapter2->getValueAt(0, 6) == "");
+        REQUIRE(adapter2->getValueAt(0, 12) == "321");
+        REQUIRE(adapter2->getValueAt(0, 5) == "");
+    }
+
+    SECTION("getMaxColumnHeight") {
+        REQUIRE(adapter->getMaxColumnHeight() == 13);
     }
 }

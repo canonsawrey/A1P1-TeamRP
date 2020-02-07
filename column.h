@@ -9,8 +9,7 @@
 using namespace std;
 
 /**
- * Class to be used as a parent to TypeColumn
- * C++ doesnt allow vector of generic class, so parent is required
+ * Represents a single Column of data
  */
 class Column {
     public:
@@ -18,6 +17,7 @@ class Column {
         vector<string*> values;
 
         Column() { 
+            // initialize type to BOOL as it is the most restrictive type
             type = BOOL;
         }
 
@@ -32,17 +32,25 @@ class Column {
             return type;
         }
 
+        /**
+         * Adds a given value to the given row in this Column
+         * @param currentField the data to be added to the Column
+         * @param row the row to insert the data at
+         */
         void addValue(string* currentField, int row) {
-            //cout << "Adding value: " << *currentField << " At row: " << row << endl;
+            // only care about updating the schema when we are within the first 500 lines
+            if (row <= 500) {
+                Type fieldType = getFieldType(*currentField);
+                //update column type if needed
+                updateColumnType(fieldType);
+            }
+            trimQuotes(currentField);
             if (row == values.size()) {
+                trimQuotes(currentField);
                 values.push_back(currentField);
             } else if (row > values.size()) {
-                vector<string*> replacement = vector<string*>(row + 1);
-                for(int i = 0; i < values.size(); i++) {
-                    replacement[i] = values[i];
-                }
-                replacement.at(row) = currentField;
-                values = replacement;
+                values.resize(row + 1);
+                values.at(row) = currentField;
             }
         }
         
@@ -57,13 +65,24 @@ class Column {
          * Returns the data with correct type at the specified row
          * @param row index of the data (starting at 0)
          */
-        string* getValue(int row) { 
-            //cout << "in getvalue with row:" << row << "\n";
+        string* getValue(int row) {
             if (row > values.size() - 1) {
-                throw "Index out of bound exception.";
+                fail("Index out of bound exception.");
             } else {
                 string* ptr = values[row];
                 return values[row];
+            }
+        }
+
+        /**
+         * Updates the type of this Column if the incomingType is less restrictive than the currentType
+         * I.e. STRING replaces FLOAT replaces INT replaces BOOL
+         * @param incomingType The type that may replace this column's current Type
+         */
+        void updateColumnType(Type incomingType) {
+            // check if the old column Type should be updated
+            if (shouldChangeType(type, incomingType)) {
+                type = incomingType;
             }
         }
         
@@ -72,18 +91,15 @@ class Column {
          * @param spacing The length of each value of the column. Ensures all rows line up when printing multiple rows
          */
         void print(int spacing) {
-            cout << "in print";
+            cout << padString(typeStr(type), 10);
             for (string* str: values) {
                 string printString;
-                if (str->length() > spacing) {
-                    printString = str->substr(0, spacing);
+                if (str == nullptr) {
+                    printString = "[EMPTY]";
                 } else {
                     printString = *str;
-                    while (printString.length() < spacing) {
-                        printString.append(" ");
-                    }
                 }
-                cout << printString << " |";
+                cout << "| " << padString(printString, spacing) << " |";
             }
         }
         
