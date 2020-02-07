@@ -6,6 +6,8 @@
 
 * Do so in a fast and memory-efficient manner
 #
+![]images/diagram.png
+#
 For part 1, we decided to implement the SoR data adapter in C++, due to 
 its high performance in comparison to other languages, ease to setup
 with Docker, and availability of libraries such as vector.h and string.h. 
