@@ -67,7 +67,7 @@ class Column {
          */
         string* getValue(int row) {
             if (row > values.size() - 1) {
-                fail("Index out of bound exception.");
+                fail("Index out of bound exception. Program terminated.");
             } else {
                 string* ptr = values[row];
                 return values[row];
