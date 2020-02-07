@@ -208,8 +208,7 @@ class SorAdapter {
             if (column >= columns.size()) {
                 fail("Column index out of bounds exception.");
             }
-            Column* col = columns[column];
-            string* str = col->getValue(row);
+            string* str = columns[column]->getValue(row);
             if (str == nullptr) {
                 return "";
             } else {

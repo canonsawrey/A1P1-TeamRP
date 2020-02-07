@@ -23,4 +23,8 @@ int main(int argc, char** argv) {
     if (configuration.printIsMissing) {
         sorAdapter->printIsMissing(configuration.isMissingCol, configuration.isMissingOffset);
     }
+
+    delete sorAdapter;
+
+    return 0;
 }
