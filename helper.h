@@ -20,7 +20,7 @@ void fail(string message = "") {
  * @return bool if s only contains digits
  */
 bool has_only_digits(const string s){
-    return s.find_first_not_of( "0123456789" ) == string::npos;
+    return s.find_first_not_of("0123456789") == string::npos;
 }
 
 /**
@@ -35,19 +35,6 @@ bool isInt(string value) {
         string intPattern(R"(^(?: *)(?:\+|\-|)(\d+))");
         regex intRegex(intPattern);
         return regex_match(value, intRegex);
-    }
-}
-
-/**
- * Convenience wrapper around stoi, returns an integer from a string
- * @param s The string to be parsed
- * @return the parsed integer
- */
-int parseInt(string value) {
-    if (value == "") {
-        return NULL;
-    } else {
-        return stoi(value);
     }
 }
 
@@ -67,19 +54,6 @@ bool isFloat(string value) {
 }
 
 /**
- * Convenience wrapper around stof, returns a float from a string
- * @param s The string to be parsed
- * @return parsed float
- */
-float parseFloat(string value) {
-    if (value == "") {
-        return NULL;
-    } else {
-        return stof(value);
-    }
-}
-
-/**
  * Returns if the string is a 0 or 1, defined to be a bool by the assignment 1 spec
  * @param s The string to be evaluated
  * @return bool: if string is 1 or 0
@@ -89,23 +63,6 @@ bool isBool(string value) {
         return false;
     } else {
         return value == "1" || value == "0";
-    }
-}
-
-/**
- * Returns bool from given string
- * @param s The string to be parsed
- * @return bool from string
- */
-bool parseBool(string value) {
-    if (value == "") {
-        return NULL;
-    } else if (value == "1") {
-        return 1;
-    } else if (value == "0") {
-        return 0;
-    } else {
-        fail("Unable to parse boolean from string: " + value);
     }
 }
 

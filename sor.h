@@ -41,7 +41,8 @@ class SorAdapter {
             // Used to keep track of the current state of parsing
             ParseState parseState = ParseState();
             // Used to collect all the data within a row. Once a newline is hit, 
-            // the staging vector will be pushed to all of the columns
+            // the staging vector will be pushed to all of the columns. This is
+            // done to prevent partial line processing due to a length argument.
             vector<string> stagingVector;
 
             //create the filestream and skip to the proper location in the file

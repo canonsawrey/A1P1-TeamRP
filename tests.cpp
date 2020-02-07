@@ -29,12 +29,6 @@ TEST_CASE("Helpers", "[helper]") {
         REQUIRE(isInt("hello") == false);
     }
 
-    SECTION("parseInt") {
-        REQUIRE(parseInt("") == NULL);
-        REQUIRE(parseInt("1") == 1);
-        REQUIRE(parseInt("-1") == -1);
-    }
-
     SECTION("isFloat") {
         REQUIRE(isFloat("") == false);
         REQUIRE(isFloat("1") == false);
@@ -44,25 +38,11 @@ TEST_CASE("Helpers", "[helper]") {
         REQUIRE(isFloat("0.23") == true);
     }
 
-    SECTION("parseFloat") {
-        REQUIRE(parseFloat("") == NULL);
-        REQUIRE(parseFloat("1.2") == 1.2f);
-        REQUIRE(parseFloat("+1.2") == 1.2f);
-        REQUIRE(parseFloat("-1.2") == -1.2f);
-        REQUIRE(parseFloat("1") == 1.0f);
-    }
-
     SECTION("isBool") {
         REQUIRE(isBool("") == false);
         REQUIRE(isBool("\"1\"") == false);
         REQUIRE(isBool("1") == true);
         REQUIRE(isBool("0") == true);
-    }
-
-    SECTION("parseBool") {
-        REQUIRE(parseBool("") == NULL);
-        REQUIRE(parseBool("1") == true);
-        REQUIRE(parseBool("0") == false);
     }
 
     SECTION("isString") {
