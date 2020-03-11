@@ -1,5 +1,7 @@
 # Assignment 1 Data Adapter - TeamRP
 
+## New improved version located [here](https://github.com/trevorstenson/CS4500-DataAdapter)
+
 ### Program Requirements
 
 * Read and process SoR files into a columnar format
